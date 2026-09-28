@@ -37,8 +37,8 @@ Parameters:
 
   AzureOpenAiDeployment:
     Type: String
-    Default: gpt-5-mini
-    Description: Azure OpenAI deployment name (not necessarily the base model name)
+    Default: kaiva-dev-gpt-5.1_mini
+    Description: Azure OpenAI deployment name (not necessarily the base model name — verify in the Azure portal)
 
 Resources:
   # NOTE: the ECR repo itself is deliberately NOT managed here. It's created
@@ -242,7 +242,12 @@ Resources:
       EnableExecuteCommand: true
       NetworkConfiguration:
         AwsvpcConfiguration:
-          AssignPublicIp: DISABLED
+          # ENABLED (not DISABLED): these "PrivateSubnet" imports currently
+          # resolve to the same public subnets as PublicSubnet1/2 (see
+          # 01-network.yaml) — there's no NAT Gateway in this account, so
+          # tasks need a public IP of their own to reach the internet
+          # (ECR pull, Azure OpenAI calls) via the Internet Gateway.
+          AssignPublicIp: ENABLED
           Subnets:
             - Fn::ImportValue: !Sub technexus-${EnvironmentName}-PrivateSubnet1
             - Fn::ImportValue: !Sub technexus-${EnvironmentName}-PrivateSubnet2

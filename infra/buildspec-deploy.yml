@@ -15,7 +15,11 @@ phases:
   build:
     commands:
       - echo "Deploying network stack (no-op if unchanged)"
-      - aws cloudformation deploy --stack-name technexus-network-${ENVIRONMENT_NAME} --template-file infra/cloudformation/01-network.yaml --parameter-overrides EnvironmentName=${ENVIRONMENT_NAME} --no-fail-on-empty-changeset
+      # This account's SCP blocks creating new VPCs/Internet Gateways, so
+      # 01-network.yaml deploys into the account's existing default VPC
+      # instead of creating one. Same VPC used for both Dev and UAT here —
+      # fine for this sandbox trial, since it's a single-account setup.
+      - aws cloudformation deploy --stack-name technexus-network-${ENVIRONMENT_NAME} --template-file infra/cloudformation/01-network.yaml --parameter-overrides EnvironmentName=${ENVIRONMENT_NAME} ExistingVpcId=vpc-06e22c0d4cd35b223 ExistingSubnetId1=subnet-0a52e9b38d12a76bf ExistingSubnetId2=subnet-04414f5895a233cc7 --no-fail-on-empty-changeset
 
       - echo "Deploying database stack"
       - aws cloudformation deploy --stack-name technexus-database-${ENVIRONMENT_NAME} --template-file infra/cloudformation/02-database.yaml --parameter-overrides EnvironmentName=${ENVIRONMENT_NAME} --no-fail-on-empty-changeset
